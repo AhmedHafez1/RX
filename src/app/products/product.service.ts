@@ -6,7 +6,10 @@ import {
   catchError,
   combineLatest,
   map,
+  merge,
   Observable,
+  scan,
+  Subject,
   tap,
   throwError,
 } from 'rxjs';
@@ -18,11 +21,14 @@ import { ProductCategoryService } from '../product-categories/product-category.s
   providedIn: 'root',
 })
 export class ProductService {
-  private productsUrl = 'api/product';
+  private productsUrl = 'api/products';
   private suppliersUrl = 'api/suppliers';
 
   private selectedProductSubject = new BehaviorSubject<number>(1);
   selectedProductAction$ = this.selectedProductSubject.asObservable();
+
+  private addProductSubject = new Subject<Product>();
+  addedProductAction$ = this.addProductSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -53,6 +59,21 @@ export class ProductService {
     )
   );
 
+  productsWithAdd$ = merge(
+    this.productsWithCategories$,
+    this.addedProductAction$
+  ).pipe(
+    scan(
+      (acc, value) => (value instanceof Array ? [...value] : [...acc, value]),
+      [] as Product[]
+    )
+  );
+
+  addProduct(newProduct?: Product) {
+    newProduct = newProduct || this.fakeProduct();
+    this.addProductSubject.next(newProduct);
+  }
+
   selectedProduct$ = combineLatest([
     this.productsWithCategories$,
     this.selectedProductAction$,
@@ -74,7 +95,7 @@ export class ProductService {
       description: 'Our new product',
       price: 8.9,
       categoryId: 3,
-      // category: 'Toolbox',
+      category: 'Toolbox',
       quantityInStock: 30,
     };
   }
