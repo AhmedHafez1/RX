@@ -9,6 +9,7 @@ import {
   merge,
   Observable,
   scan,
+  shareReplay,
   Subject,
   tap,
   throwError,
@@ -56,7 +57,8 @@ export class ProductService {
             )?.name,
           } as Product)
       )
-    )
+    ),
+    shareReplay(1)
   );
 
   productsWithAdd$ = merge(
@@ -80,7 +82,8 @@ export class ProductService {
   ]).pipe(
     map(([products, selectedProductId]) =>
       products.find((p) => p.id === selectedProductId)
-    )
+    ),
+    shareReplay(1)
   );
 
   selectedProductChange(selectedProductId: number) {

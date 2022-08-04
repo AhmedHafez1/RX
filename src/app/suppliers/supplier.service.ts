@@ -1,15 +1,19 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
-import { throwError, Observable } from 'rxjs';
+import { throwError, Observable, of, map } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SupplierService {
   suppliersUrl = 'api/suppliers';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    this.ho$.subscribe((x) => console.log(x));
+  }
+
+  ho$ = of(2, 5, 8).pipe(map((value) => of(`inner obs value (${value})`)));
 
   private handleError(err: HttpErrorResponse): Observable<never> {
     // in a real world app, we may send the server to some remote logging infrastructure
@@ -26,5 +30,4 @@ export class SupplierService {
     console.error(err);
     return throwError(() => errorMessage);
   }
-
 }

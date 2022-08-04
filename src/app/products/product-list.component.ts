@@ -11,6 +11,7 @@ import {
 } from 'rxjs';
 import { ProductCategory } from '../product-categories/product-category';
 import { ProductCategoryService } from '../product-categories/product-category.service';
+import { SupplierService } from '../suppliers/supplier.service';
 
 import { ProductService } from './product.service';
 
@@ -53,6 +54,7 @@ export class ProductListComponent {
 
   constructor(
     private productService: ProductService,
+    private supplierService: SupplierService,
     private categoryService: ProductCategoryService
   ) {}
 
