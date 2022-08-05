@@ -5,18 +5,24 @@ import {
   BehaviorSubject,
   catchError,
   combineLatest,
+  filter,
+  forkJoin,
   map,
   merge,
   Observable,
+  of,
   scan,
   shareReplay,
   Subject,
+  switchMap,
   tap,
   throwError,
 } from 'rxjs';
 
 import { Product } from './product';
 import { ProductCategoryService } from '../product-categories/product-category.service';
+import { SupplierService } from '../suppliers/supplier.service';
+import { Supplier } from '../suppliers/supplier';
 
 @Injectable({
   providedIn: 'root',
@@ -33,11 +39,12 @@ export class ProductService {
 
   constructor(
     private http: HttpClient,
-    private categoryService: ProductCategoryService
+    private categoryService: ProductCategoryService,
+    private supplierService: SupplierService
   ) {}
 
   products$ = this.http.get<Product[]>(this.productsUrl).pipe(
-    // tap((data) => console.log('Products: ', JSON.stringify(data))),
+    tap((data) => console.log('Products: ', JSON.stringify(data))),
     catchError(this.handleError)
   );
 
@@ -84,6 +91,34 @@ export class ProductService {
       products.find((p) => p.id === selectedProductId)
     ),
     shareReplay(1)
+  );
+
+  // selectedProductSuppliers$ = combineLatest([
+  //   this.selectedProduct$,
+  //   this.supplierService.suppliers$,
+  // ]).pipe(
+  //   map(([product, suppliers]) =>
+  //     suppliers.filter((supplier) =>
+  //       product?.supplierIds?.includes(supplier.id)
+  //     )
+  //   )
+  // );
+
+  selectedProductSuppliers$ = this.selectedProduct$.pipe(
+    switchMap((selectedProduct) => {
+      if (selectedProduct?.supplierIds) {
+        return forkJoin(
+          selectedProduct.supplierIds.map((id) =>
+            this.http.get<Supplier>(`${this.suppliersUrl}/${id}`)
+          )
+        );
+      } else {
+        return of([]);
+      }
+    }),
+    tap((productSuppliers) =>
+      console.log('Product Suppliers ', JSON.stringify(productSuppliers))
+    )
   );
 
   selectedProductChange(selectedProductId: number) {

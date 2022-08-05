@@ -54,7 +54,6 @@ export class ProductListComponent {
 
   constructor(
     private productService: ProductService,
-    private supplierService: SupplierService,
     private categoryService: ProductCategoryService
   ) {}
 
